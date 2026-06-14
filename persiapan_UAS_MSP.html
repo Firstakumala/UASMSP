@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Persiapan UAS — Manajemen Survei & Pemetaan</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #181c27;
+    --surface2: #1e2333;
+    --border: #2a3050;
+    --accent: #4f8ef7;
+    --accent2: #38d9a9;
+    --accent3: #f7c344;
+    --accent4: #f76f72;
+    --text: #e8eaf0;
+    --muted: #8892aa;
+    --geo-blue: #1a3a6b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 16px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #0a0e1a 0%, #0f1a35 50%, #0a1428 100%);
+    padding: 80px 40px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(79,142,247,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,142,247,0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(79,142,247,0.15);
+    border: 1px solid rgba(79,142,247,0.4);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.6rem);
+    font-weight: 800;
+    line-height: 1.15;
+    position: relative;
+    background: linear-gradient(135deg, #e8eaf0 0%, #4f8ef7 60%, #38d9a9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+  .hero p {
+    color: var(--muted);
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto 40px;
+    position: relative;
+  }
+  .hero-meta {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    position: relative;
+  }
+  .hero-meta span {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .hero-meta span strong { color: var(--accent2); }
+
+  /* ── NAV ── */
+  .sticky-nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(15,17,23,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex; gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .sticky-nav::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    white-space: nowrap;
+    padding: 14px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .nav-btn:hover, .nav-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  section { padding: 64px 0; border-bottom: 1px solid var(--border); }
+
+  .section-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .section-title {
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 800;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+  .section-sub {
+    color: var(--muted);
+    font-size: 1rem;
+    margin-bottom: 40px;
+    max-width: 620px;
+  }
+
+  /* ── CARDS ── */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 32px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .card-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    margin-bottom: 16px;
+  }
+  .card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+  .card p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; margin-top: 24px; border-radius: 12px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th {
+    background: var(--surface2);
+    padding: 14px 18px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  td { padding: 13px 18px; border-top: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: rgba(79,142,247,0.04); }
+
+  /* ── HIGHLIGHT BOXES ── */
+  .highlight {
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 20px 0;
+    border-left: 4px solid;
+  }
+  .highlight.blue { background: rgba(79,142,247,0.08); border-color: var(--accent); }
+  .highlight.green { background: rgba(56,217,169,0.08); border-color: var(--accent2); }
+  .highlight.yellow { background: rgba(247,195,68,0.08); border-color: var(--accent3); }
+  .highlight.red { background: rgba(247,111,114,0.08); border-color: var(--accent4); }
+  .highlight strong { display: block; margin-bottom: 6px; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase; }
+  .highlight.blue strong { color: var(--accent); }
+  .highlight.green strong { color: var(--accent2); }
+  .highlight.yellow strong { color: var(--accent3); }
+  .highlight.red strong { color: var(--accent4); }
+
+  /* ── TAGS ── */
+  .tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    margin: 3px;
+  }
+  .tag-blue { background: rgba(79,142,247,0.15); color: var(--accent); }
+  .tag-green { background: rgba(56,217,169,0.15); color: var(--accent2); }
+  .tag-yellow { background: rgba(247,195,68,0.15); color: var(--accent3); }
+  .tag-red { background: rgba(247,111,114,0.15); color: var(--accent4); }
+
+  /* ── STEP FLOW ── */
+  .steps { display: flex; flex-direction: column; gap: 0; position: relative; }
+  .step {
+    display: flex; gap: 20px;
+    padding: 24px 0;
+    position: relative;
+  }
+  .step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 19px; top: 56px; bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #2563eb);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.85rem;
+  }
+  .step-content h4 { font-weight: 700; margin-bottom: 6px; }
+  .step-content p { color: var(--muted); font-size: 0.9rem; }
+
+  /* ── QUIZ ── */
+  #quiz-section { background: var(--bg); }
+  .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 12px; }
+  .quiz-counter {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 13px; color: var(--muted);
+  }
+  .quiz-counter span { color: var(--accent); font-weight: 700; }
+  .question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 20px;
+    display: none;
+  }
+  .question-card.active { display: block; }
+  .q-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+  }
+  .q-badge.analyze { background: rgba(247,195,68,0.15); color: var(--accent3); }
+  .q-badge.evaluate { background: rgba(247,111,114,0.15); color: var(--accent4); }
+  .q-badge.create { background: rgba(56,217,169,0.15); color: var(--accent2); }
+  .q-text { font-size: 1.05rem; font-weight: 600; margin-bottom: 10px; line-height: 1.5; }
+  .q-context { font-size: 0.9rem; color: var(--muted); margin-bottom: 24px; line-height: 1.6; background: var(--surface2); padding: 14px 18px; border-radius: 10px; border-left: 3px solid var(--accent3); }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 14px 18px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+  }
+  .option:hover { border-color: var(--accent); background: rgba(79,142,247,0.06); }
+  .option.correct { border-color: var(--accent2); background: rgba(56,217,169,0.08); }
+  .option.wrong { border-color: var(--accent4); background: rgba(247,111,114,0.08); }
+  .option-label {
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .explanation {
+    margin-top: 16px; padding: 16px 18px;
+    background: rgba(56,217,169,0.06);
+    border-left: 3px solid var(--accent2);
+    border-radius: 0 10px 10px 0;
+    font-size: 0.9rem;
+    color: var(--text);
+    display: none;
+  }
+  .explanation.show { display: block; }
+  .explanation strong { color: var(--accent2); }
+  .quiz-nav { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    border: none;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: #3a7de8; transform: translateY(-1px); }
+  .btn-outline { background: none; border: 1px solid var(--border); color: var(--text); }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .score-display {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+    display: none;
+  }
+  .score-display h3 { font-size: 1.6rem; margin-bottom: 8px; }
+  .score-big {
+    font-size: 5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+
+  /* ── SVG ILLUSTRATIONS ── */
+  .illustration-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin: 24px 0;
+  }
+  .illus-label {
+    padding: 12px 20px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .illus-label span { color: var(--accent); margin-right: 6px; }
+
+  /* ── RACI TABLE ── */
+  .raci-r { background: rgba(247,195,68,0.2); color: var(--accent3); font-weight: 700; padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono',monospace; font-size: 13px; }
+  .raci-a { background: rgba(247,111,114,0.2); color: var(--accent4); font-weight: 700; padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono',monospace; font-size: 13px; }
+  .raci-c { background: rgba(79,142,247,0.2); color: var(--accent); font-weight: 700; padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono',monospace; font-size: 13px; }
+  .raci-i { background: rgba(56,217,169,0.2); color: var(--accent2); font-weight: 700; padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono',monospace; font-size: 13px; }
+
+  /* ── 2COL ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 720px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* ── LIST ── */
+  ul.styled { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  ul.styled li { display: flex; gap: 10px; align-items: flex-start; font-size: 0.95rem; }
+  ul.styled li::before { content: '▸'; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--muted);
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+  }
+  footer strong { color: var(--accent); }
+
+  /* ── POWER-INTEREST GRID ── */
+  .matrix-cell { text-align: center; padding: 16px 8px; border-radius: 8px; font-size: 0.85rem; }
+  .matrix-cell strong { display: block; font-size: 1rem; margin-bottom: 4px; }
+
+  /* progress bar */
+  .progress-bar { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 24px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; transition: width 0.4s ease; }
+
+  @media (max-width: 600px) {
+    section { padding: 40px 0; }
+    .hero { padding: 48px 20px 40px; }
+    .container { padding: 0 16px; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-badge">📍 Persiapan UAS 2026</div>
+  <h1>Manajemen Survei<br>& Pemetaan</h1>
+  <p>Ringkasan lengkap materi kuliah — Bisnis IG, Stakeholder, Executive Summary, Pengadaan, dan Sumber Daya Proyek Geospasial.</p>
+  <div class="hero-meta">
+    <span>👨‍🏫 <strong>Totok Wahyu Wibowo</strong></span>
+    <span>🏛 <strong>Kartografi & PJ — UGM</strong></span>
+    <span>📚 <strong>4 Topik Materi</strong></span>
+    <span>🧠 <strong>20 Soal HOTS</strong></span>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="sticky-nav">
+  <button class="nav-btn active" onclick="scrollTo('bisnis')">🏢 Bisnis IG</button>
+  <button class="nav-btn" onclick="scrollTo('stakeholder')">🤝 Stakeholder</button>
+  <button class="nav-btn" onclick="scrollTo('exsum')">📄 Executive Summary</button>
+  <button class="nav-btn" onclick="scrollTo('procurement')">📦 Pengadaan</button>
+  <button class="nav-btn" onclick="scrollTo('resource')">👥 Sumber Daya</button>
+  <button class="nav-btn" onclick="scrollTo('quiz-section')">🧠 Soal HOTS</button>
+</nav>
+
+<!-- ══════════════════════════════════════ -->
+<!-- TOPIK 1: BISNIS IG -->
+<!-- ══════════════════════════════════════ -->
+<section id="bisnis">
+<div class="container">
+  <div class="section-eyebrow">Topik 1</div>
+  <div class="section-title">Bisnis Informasi Geospasial di Indonesia</div>
+  <p class="section-sub">Lanskap industri, tiga jalur bisnis, dan bagaimana lulusan KPJ membangun karir wirausaha geospasial.</p>
+
+  <!-- Ilustrasi: Lanskap Industri -->
+  <div class="illustration-wrap">
+    <div class="illus-label"><span>🗺</span> Pendorong Pasar Geospasial Indonesia</div>
+    <svg viewBox="0 0 900 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#181c27">
+      <!-- grid lines -->
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#4f8ef7"/>
+          <stop offset="100%" stop-color="#38d9a9"/>
+        </linearGradient>
+      </defs>
+      <!-- 4 pillars -->
+      <!-- Pillar 1 -->
+      <rect x="60" y="80" width="160" height="140" rx="12" fill="#1e2333" stroke="#2a3050" stroke-width="1.5"/>
+      <rect x="80" y="60" width="120" height="36" rx="8" fill="#1a3a6b"/>
+      <text x="140" y="83" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#4f8ef7">One Map Policy</text>
+      <text x="140" y="118" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">Perpres 23/2021</text>
+      <text x="140" y="140" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">Ribuan paket</text>
+      <text x="140" y="158" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">pemetaan/tahun</text>
+      <text x="140" y="200" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="26">🗺️</text>
+      <!-- Pillar 2 -->
+      <rect x="260" y="80" width="160" height="140" rx="12" fill="#1e2333" stroke="#2a3050" stroke-width="1.5"/>
+      <rect x="280" y="60" width="120" height="36" rx="8" fill="#1a3a1a"/>
+      <text x="340" y="83" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#38d9a9">RDTR Digital</text>
+      <text x="340" y="118" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">Seluruh kab/kota</text>
+      <text x="340" y="138" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">butuh peta digital</text>
+      <text x="340" y="158" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">berbasis SIG</text>
+      <text x="340" y="200" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="26">🏙️</text>
+      <!-- Pillar 3 -->
+      <rect x="460" y="80" width="160" height="140" rx="12" fill="#1e2333" stroke="#2a3050" stroke-width="1.5"/>
+      <rect x="480" y="60" width="120" height="36" rx="8" fill="#2a1a00"/>
+      <text x="540" y="83" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#f7c344">Pasar Swasta</text>
+      <text x="540" y="118" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">Sawit, tambang,</text>
+      <text x="540" y="138" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">properti, logistik</text>
+      <text x="540" y="158" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">analisis spasial rutin</text>
+      <text x="540" y="200" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="26">🏭</text>
+      <!-- Pillar 4 -->
+      <rect x="660" y="80" width="160" height="140" rx="12" fill="#1e2333" stroke="#2a3050" stroke-width="1.5"/>
+      <rect x="680" y="60" width="120" height="36" rx="8" fill="#2a0a0a"/>
+      <text x="740" y="83" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#f76f72">Bencana & Iklim</text>
+      <text x="740" y="118" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">Pemetaan risiko,</text>
+      <text x="740" y="138" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">tutupan lahan,</text>
+      <text x="740" y="158" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">analisis DAS</text>
+      <text x="740" y="200" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="26">🌊</text>
+      <!-- central label -->
+      <text x="450" y="248" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#4f8ef7" font-weight="600">4 Pendorong Utama Permintaan Jasa Geospasial di Indonesia</text>
+    </svg>
+  </div>
+
+  <!-- 3 Jalur Bisnis Cards -->
+  <h3 style="font-size:1.3rem;font-weight:700;margin-bottom:20px;margin-top:40px;">3 Jalur Bisnis Geospasial</h3>
+  <div class="card-grid">
+    <div class="card" style="border-top: 3px solid var(--accent);">
+      <div class="card-icon" style="background:rgba(79,142,247,0.15);">🏢</div>
+      <h3>CV / Konsultan Jasa</h3>
+      <p style="margin-bottom:14px;">Produk berupa jasa (peta, laporan, analisis). Klien utama pemerintah/BUMN. Pendapatan dari kontrak tender.</p>
+      <div>
+        <span class="tag tag-blue">Modal: Rp 20–100 jt</span>
+        <span class="tag tag-yellow">Risiko: Tender ketat</span>
+        <span class="tag tag-green">Cocok: suka manajemen proyek</span>
+      </div>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--accent2);">
+      <div class="card-icon" style="background:rgba(56,217,169,0.15);">🚀</div>
+      <h3>Startup GeoTech</h3>
+      <p style="margin-bottom:14px;">Produk berbasis teknologi (WebGIS, API, SaaS). Pendapatan dari subscription/lisensi. Scalable & potensi besar.</p>
+      <div>
+        <span class="tag tag-green">Modal: Tinggi / VC-backed</span>
+        <span class="tag tag-red">Risiko: Produk gagal pasar</span>
+        <span class="tag tag-blue">Cocok: suka inovasi teknologi</span>
+      </div>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--accent3);">
+      <div class="card-icon" style="background:rgba(247,195,68,0.15);">💼</div>
+      <h3>Freelance / Solopreneur</h3>
+      <p style="margin-bottom:14px;">Jasa spesialis per proyek. Klien dari mana saja. Pendapatan per proyek/retainer. Fleksibilitas tertinggi.</p>
+      <div>
+        <span class="tag tag-yellow">Modal: &lt; Rp 5 jt</span>
+        <span class="tag tag-red">Risiko: Pendapatan tak stabil</span>
+        <span class="tag tag-green">Cocok: suka fleksibilitas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CV Geospasial Detail -->
+  <div style="margin-top:40px;">
+    <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:16px;">📋 Tahapan Mendirikan CV Geospasial</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>Akta Pendirian CV</h4>
+          <p>Dibuat di hadapan Notaris. Berisi nama CV, bidang usaha, dan komposisi sekutu aktif/pasif.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>NIB (Nomor Induk Berusaha)</h4>
+          <p>Daftar via OSS (oss.go.id). NIB sekaligus berfungsi sebagai TDP dan izin usaha dasar.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>KBLI yang Tepat</h4>
+          <p>Kode 71102 (Aktivitas Keinsinyuran & Konsultansi Teknis) atau 74901 (Aktivitas Profesional Lainnya).</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h4>NPWP Badan</h4>
+          <p>Daftar ke KPP terdekat atau online. Wajib untuk ikut tender pemerintah.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <h4>Rekening Bank Perusahaan</h4>
+          <p>Pisahkan keuangan pribadi dan bisnis sejak hari pertama.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <h4>SBU (Sertifikat Badan Usaha)</h4>
+          <p>Dikeluarkan asosiasi profesi (misal: INKINDO). <strong>Wajib</strong> untuk tender konsultansi pemerintah.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="highlight blue" style="margin-top:32px;">
+    <strong>💡 Mengapa CV, bukan PT?</strong>
+    CV lebih mudah dan murah didirikan (tidak ada modal dasar minimum). Cukup untuk mengikuti tender pemerintah kelas kecil–menengah (s/d Rp 2,5 miliar). Cocok sebagai "kendaraan bisnis pertama" sebelum naik kelas ke PT.
+  </div>
+
+  <!-- Model Bisnis Startup -->
+  <h3 style="font-size:1.2rem;font-weight:700;margin:40px 0 16px;">🚀 Model Bisnis Startup GeoTech</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Model</th><th>Cara Kerja</th><th>Contoh</th><th>Cocok Jika...</th></tr></thead>
+      <tbody>
+        <tr><td><strong>SaaS</strong></td><td>Klien bayar langganan bulanan/tahunan untuk akses platform</td><td>Platform WebGIS monitoring lahan perkebunan</td><td>Produkmu berbasis web/aplikasi yang rutin digunakan</td></tr>
+        <tr><td><strong>DaaS</strong></td><td>Jual akses ke dataset geospasial yang dikurasi/diproses</td><td>Langganan data NDVI mingguan untuk agrikultur</td><td>Punya kapasitas mengolah & memperbarui data secara rutin</td></tr>
+        <tr><td><strong>API Monetization</strong></td><td>Developer lain bayar per-call untuk menggunakan layanan spasialmu</td><td>API geocoding, routing, analisis risiko banjir</td><td>Produkmu bisa diintegrasikan ke sistem pihak lain</td></tr>
+        <tr><td><strong>Freemium</strong></td><td>Fitur dasar gratis, fitur premium berbayar</td><td>WebGIS publik gratis, analisis lanjutan berbayar</td><td>Ingin masuk pasar cepat dan bangun user base dulu</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════ -->
+<!-- TOPIK 2: STAKEHOLDER -->
+<!-- ══════════════════════════════════════ -->
+<section id="stakeholder">
+<div class="container">
+  <div class="section-eyebrow">Topik 2</div>
+  <div class="section-title">Manajemen Pemangku Kepentingan Proyek Geospasial</div>
+  <p class="section-sub">"Projects fail not because of bad data, but because of neglected people."</p>
+
+  <!-- Ekosistem Stakeholder -->
+  <div class="illustration-wrap">
+    <div class="illus-label"><span>🤝</span> Ekosistem Stakeholder Geospasial di Indonesia</div>
+    <svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#181c27">
+      <!-- center proyek -->
+      <circle cx="450" cy="150" r="55" fill="#1a3a6b" stroke="#4f8ef7" stroke-width="2"/>
+      <text x="450" y="144" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="14" font-weight="800" fill="#4f8ef7">PROYEK</text>
+      <text x="450" y="163" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8892aa">GEOSPASIAL</text>
+      <!-- lines -->
+      <line x1="395" y1="150" x2="250" y2="80" stroke="#2a3050" stroke-width="1.5" stroke-dasharray="4"/>
+      <line x1="395" y1="150" x2="200" y2="180" stroke="#2a3050" stroke-width="1.5" stroke-dasharray="4"/>
+      <line x1="505" y1="150" x2="650" y2="80" stroke="#2a3050" stroke-width="1.5" stroke-dasharray="4"/>
+      <line x1="505" y1="150" x2="700" y2="180" stroke="#2a3050" stroke-width="1.5" stroke-dasharray="4"/>
+      <line x1="450" y1="95" x2="450" y2="30" stroke="#2a3050" stroke-width="1.5" stroke-dasharray="4"/>
+      <line x1="450" y1="205" x2="450" y2="270" stroke="#2a3050" stroke-width="1.5" stroke-dasharray="4"/>
+      <!-- nodes -->
+      <!-- Regulator -->
+      <rect x="310" y="10" width="280" height="40" rx="10" fill="#1e2333" stroke="#f7c344" stroke-width="1.5"/>
+      <text x="450" y="35" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#f7c344">⚖️ Regulator — BIG, ATR/BPN, KLHK</text>
+      <!-- Tim Internal -->
+      <rect x="130" y="55" width="200" height="50" rx="10" fill="#1e2333" stroke="#38d9a9" stroke-width="1.5"/>
+      <text x="230" y="76" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#38d9a9">👷 Tim Internal</text>
+      <text x="230" y="96" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8892aa">Surveyor, Analis GIS, Pilot Drone</text>
+      <!-- Sponsor -->
+      <rect x="570" y="55" width="200" height="50" rx="10" fill="#1e2333" stroke="#4f8ef7" stroke-width="1.5"/>
+      <text x="670" y="76" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#4f8ef7">💰 Sponsor/Klien</text>
+      <text x="670" y="96" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8892aa">Gubernur, Bupati, Direktur Sawit</text>
+      <!-- Masyarakat -->
+      <rect x="90" y="155" width="200" height="50" rx="10" fill="#1e2333" stroke="#f76f72" stroke-width="1.5"/>
+      <text x="190" y="176" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#f76f72">🏘️ Masyarakat Terdampak</text>
+      <text x="190" y="196" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8892aa">Pemilik lahan, adat, LSM</text>
+      <!-- Vendor -->
+      <rect x="610" y="155" width="200" height="50" rx="10" fill="#1e2333" stroke="#8892aa" stroke-width="1.5"/>
+      <text x="710" y="176" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#8892aa">🔧 Vendor/Supplier</text>
+      <text x="710" y="196" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8892aa">Pemasok alat, penyedia citra</text>
+      <!-- Hidden -->
+      <rect x="310" y="258" width="280" height="40" rx="10" fill="#1e2333" stroke="#f76f72" stroke-width="1.5" stroke-dasharray="5"/>
+      <text x="450" y="283" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#f76f72">👻 Hidden Stakeholders (waspada!)</text>
+    </svg>
+  </div>
+
+  <!-- Power-Interest Grid -->
+  <h3 style="font-size:1.2rem;font-weight:700;margin:40px 0 16px;">Power / Interest Grid</h3>
+  <div class="illustration-wrap">
+    <div class="illus-label"><span>📊</span> Matriks Power–Interest untuk Proyek Pemetaan</div>
+    <svg viewBox="0 0 860 360" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#181c27">
+      <!-- axes -->
+      <line x1="80" y1="300" x2="800" y2="300" stroke="#2a3050" stroke-width="2"/>
+      <line x1="80" y1="300" x2="80" y2="40" stroke="#2a3050" stroke-width="2"/>
+      <!-- arrow -->
+      <polygon points="800,295 810,300 800,305" fill="#2a3050"/>
+      <polygon points="75,40 80,30 85,40" fill="#2a3050"/>
+      <!-- axis labels -->
+      <text x="430" y="328" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#8892aa">Interest (Ketertarikan) →</text>
+      <text x="36" y="170" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#8892aa" transform="rotate(-90,36,170)">Power (Kekuasaan) →</text>
+      <!-- divider -->
+      <line x1="80" y1="170" x2="800" y2="170" stroke="#2a3050" stroke-width="1" stroke-dasharray="6"/>
+      <line x1="440" y1="40" x2="440" y2="300" stroke="#2a3050" stroke-width="1" stroke-dasharray="6"/>
+      <!-- Q1: High Power, Low Interest -->
+      <rect x="82" y="42" width="356" height="126" rx="8" fill="rgba(247,195,68,0.05)" stroke="#f7c344" stroke-width="1"/>
+      <text x="260" y="70" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="800" fill="#f7c344">🟡 KEEP SATISFIED</text>
+      <text x="260" y="92" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">High Power, Low Interest</text>
+      <text x="260" y="115" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#e8eaf0">Kepolisian/TNI — pemberi izin terbang drone</text>
+      <text x="260" y="133" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#e8eaf0">Dinas Perhubungan</text>
+      <text x="260" y="152" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">→ Jaga kepuasan, jangan abaikan</text>
+      <!-- Q2: High Power, High Interest -->
+      <rect x="442" y="42" width="356" height="126" rx="8" fill="rgba(247,111,114,0.08)" stroke="#f76f72" stroke-width="2"/>
+      <text x="620" y="70" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="800" fill="#f76f72">🔴 MANAGE CLOSELY</text>
+      <text x="620" y="92" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">High Power, High Interest</text>
+      <text x="620" y="115" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#e8eaf0">Klien Utama, Pejabat Validasi BIG</text>
+      <text x="620" y="133" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#e8eaf0">Sponsor proyek</text>
+      <text x="620" y="152" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">→ Keterlibatan penuh & komunikasi intensif</text>
+      <!-- Q3: Low Power, Low Interest -->
+      <rect x="82" y="172" width="356" height="126" rx="8" fill="rgba(56,217,169,0.04)" stroke="#2a3050" stroke-width="1"/>
+      <text x="260" y="198" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="800" fill="#8892aa">⚪ MONITOR</text>
+      <text x="260" y="218" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">Low Power, Low Interest</text>
+      <text x="260" y="240" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#e8eaf0">Pemasok alat sewaan</text>
+      <text x="260" y="258" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#e8eaf0">Warga desa tetangga</text>
+      <text x="260" y="278" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">→ Pantau, jangan buang energi</text>
+      <!-- Q4: Low Power, High Interest -->
+      <rect x="442" y="172" width="356" height="126" rx="8" fill="rgba(79,142,247,0.06)" stroke="#4f8ef7" stroke-width="1"/>
+      <text x="620" y="198" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="800" fill="#4f8ef7">🔵 KEEP INFORMED</text>
+      <text x="620" y="218" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">Low Power, High Interest</text>
+      <text x="620" y="240" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#e8eaf0">Warga desa terdampak</text>
+      <text x="620" y="258" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#e8eaf0">LSM Lokal</text>
+      <text x="620" y="278" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">→ Informasikan, libatkan dalam proses</text>
+    </svg>
+  </div>
+
+  <!-- Stakeholder Salience Model -->
+  <h3 style="font-size:1.2rem;font-weight:700;margin:40px 0 16px;">Stakeholder Salience Model</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dimensi</th><th>Pertanyaan</th><th>Contoh di Proyek IG</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-red">Power</span></td><td>Apakah mereka bisa mempengaruhi jalannya proyek?</td><td>Kepala BIG bisa menolak validasi peta</td></tr>
+        <tr><td><span class="tag tag-blue">Legitimacy</span></td><td>Apakah mereka punya hak hukum yang sah?</td><td>Pemilik sertifikat tanah yang dilalui jalur survei</td></tr>
+        <tr><td><span class="tag tag-yellow">Urgency</span></td><td>Apakah kepentingan mereka mendesak/sensitif waktu?</td><td>Warga yang sawahnya akan segera dipatok</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card-grid" style="margin-top:24px;">
+    <div class="highlight red">
+      <strong>⚡ Dominant</strong> Power + Legitimacy → Klien pemerintah. Kelola dengan sangat dekat.
+    </div>
+    <div class="highlight yellow">
+      <strong>⚠️ Dangerous</strong> Power + Urgency (tanpa Legitimacy) → Oknum yang mengklaim lahan. Waspadai!
+    </div>
+    <div class="highlight blue">
+      <strong>🛡️ Dependent</strong> Legitimacy + Urgency (tanpa Power) → Warga kecil pemilik lahan. Lindungi & libatkan.
+    </div>
+    <div class="highlight green">
+      <strong>✅ Definitive</strong> Power + Legitimacy + Urgency → Prioritas tertinggi. Tangani segera!
+    </div>
+  </div>
+
+  <!-- Resolusi Konflik -->
+  <h3 style="font-size:1.2rem;font-weight:700;margin:40px 0 16px;">Strategi Resolusi Konflik di Proyek Pemetaan</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Strategi</th><th>Prinsip</th><th>Contoh Implementasi</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-green">Collaborating</span></td><td>Cari solusi integratif lintas sektoral</td><td>Tim LBS berkolaborasi dengan Dinas Pertanian untuk ground check membedakan sawah vs perkebunan di citra</td></tr>
+        <tr><td><span class="tag tag-blue">Compromising</span></td><td>Seimbangkan kedetalan vs batas waktu</td><td>Gunakan citra 10m untuk regional, drone hanya di area hotspot pemukiman</td></tr>
+        <tr><td><span class="tag tag-red">Forcing</span></td><td>Patuhi standar akurasi, tanpa kompromi</td><td>Menolak "pemutihan" area hutan di peta tutupan lahan meskipun diminta pihak tertentu</td></tr>
+        <tr><td><span class="tag tag-yellow">Smoothing</span></td><td>Tonjolkan manfaat publik</td><td>Presentasikan simulasi risiko bencana visual kepada warga sebelum memberlakukan larangan membangun di zona merah</td></tr>
+        <tr><td><span class="tag tag-blue">Avoiding</span></td><td>Tunda keputusan hingga data terverifikasi</td><td>Tunda debat angka deforestasi sampai Error Matrix selesai</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="highlight red" style="margin-top:24px;">
+    <strong>👻 Hidden Stakeholders — Waspada!</strong>
+    Pemilik lahan absentee, tokoh adat non-formal, komunitas diaspora aktif di medsos, dan kompetitor yang kalah tender bisa menjadi "aktor bayangan" yang menghambat proyek. Strategi: lakukan snowball identification ("Siapa lagi yang sebaiknya kami temui?") dan pantau medsos lokal sejak H-1.
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════ -->
+<!-- TOPIK 3: EXECUTIVE SUMMARY -->
+<!-- ══════════════════════════════════════ -->
+<section id="exsum">
+<div class="container">
+  <div class="section-eyebrow">Topik 3</div>
+  <div class="section-title">Executive Summary Proyek Geospasial</div>
+  <p class="section-sub">Ditulis terakhir, dibaca pertama. Bukan ringkasan teknis — tapi ringkasan keputusan dan dampak.</p>
+
+  <!-- ExSum vs Abstract -->
+  <div class="two-col" style="margin-bottom:32px;">
+    <div class="highlight yellow">
+      <strong>📄 Executive Summary</strong>
+      Untuk pembaca yang <em>tidak paham teknis</em> tapi <em>punya kuasa</em> menyetujui/menghentikan proyek. Berisi keputusan dan dampak. Ditulis oleh PM/Ketua Tim.
+    </div>
+    <div class="highlight blue">
+      <strong>📑 Abstract / Abstrak</strong>
+      Untuk pembaca akademis atau teknis. Berisi tujuan, metode, dan hasil secara ringkas. Lazim dalam jurnal ilmiah.
+    </div>
+  </div>
+
+  <!-- Posisi ES -->
+  <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:16px;">Pemetaan ES ke Laporan Utama</h3>
+  <div class="illustration-wrap">
+    <div class="illus-label"><span>🔗</span> Struktur Executive Summary Proyek Geospasial</div>
+    <svg viewBox="0 0 880 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#181c27">
+      <!-- Laporan Utama (left) -->
+      <rect x="40" y="30" width="260" height="220" rx="12" fill="#1e2333" stroke="#2a3050" stroke-width="1.5"/>
+      <text x="170" y="58" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="800" fill="#e8eaf0">📘 Laporan Utama</text>
+      <rect x="55" y="68" width="230" height="30" rx="6" fill="#1a3a6b"/>
+      <text x="170" y="88" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#4f8ef7">BAB I Pendahuluan</text>
+      <rect x="55" y="103" width="230" height="30" rx="6" fill="#1e3333"/>
+      <text x="170" y="123" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#38d9a9">BAB II Tinjauan Pustaka/Regulasi</text>
+      <rect x="55" y="138" width="230" height="30" rx="6" fill="#2a1a00"/>
+      <text x="170" y="158" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#f7c344">BAB III Metodologi</text>
+      <rect x="55" y="173" width="230" height="30" rx="6" fill="#2a0a0a"/>
+      <text x="170" y="193" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#f76f72">BAB IV Hasil & Pembahasan</text>
+      <rect x="55" y="208" width="230" height="30" rx="6" fill="#1a2a3a"/>
+      <text x="170" y="228" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">BAB V Kesimpulan & Rekomendasi</text>
+      <!-- Arrows -->
+      <line x1="310" y1="83" x2="400" y2="83" stroke="#4f8ef7" stroke-width="1.5" stroke-dasharray="5"/>
+      <line x1="310" y1="118" x2="400" y2="118" stroke="#38d9a9" stroke-width="1.5" stroke-dasharray="5"/>
+      <line x1="310" y1="153" x2="400" y2="153" stroke="#f7c344" stroke-width="1.5" stroke-dasharray="5"/>
+      <line x1="310" y1="188" x2="400" y2="188" stroke="#f76f72" stroke-width="1.5" stroke-dasharray="5"/>
+      <line x1="310" y1="223" x2="400" y2="223" stroke="#8892aa" stroke-width="1.5" stroke-dasharray="5"/>
+      <polygon points="398,79 405,83 398,87" fill="#4f8ef7"/>
+      <polygon points="398,114 405,118 398,122" fill="#38d9a9"/>
+      <polygon points="398,149 405,153 398,157" fill="#f7c344"/>
+      <polygon points="398,184 405,188 398,192" fill="#f76f72"/>
+      <polygon points="398,219 405,223 398,227" fill="#8892aa"/>
+      <!-- ES (right) -->
+      <rect x="405" y="30" width="430" height="220" rx="12" fill="#1e2333" stroke="#4f8ef7" stroke-width="2"/>
+      <text x="620" y="58" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="800" fill="#e8eaf0">📋 Executive Summary</text>
+      <rect x="420" y="68" width="400" height="30" rx="6" fill="#1a3a6b"/>
+      <text x="620" y="88" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#4f8ef7">§1 Identitas Proyek: nama, lokasi, latar belakang, tujuan</text>
+      <rect x="420" y="103" width="400" height="30" rx="6" fill="#1e3333"/>
+      <text x="620" y="123" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#38d9a9">§2 Metodologi (1 paragraf padat): data, tools, standar</text>
+      <rect x="420" y="138" width="400" height="30" rx="6" fill="#2a1a00"/>
+      <text x="620" y="158" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#f7c344">§3 Output & Temuan Utama (bagian terpanjang)</text>
+      <rect x="420" y="173" width="400" height="30" rx="6" fill="#2a0a0a"/>
+      <text x="620" y="193" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#f76f72">§4 Kesimpulan (3-5 poin, merujuk ke KAK)</text>
+      <rect x="420" y="208" width="400" height="30" rx="6" fill="#1a2a3a"/>
+      <text x="620" y="228" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">§5 Rekomendasi Tindak Lanjut</text>
+    </svg>
+  </div>
+
+  <!-- Contoh Temuan -->
+  <h3 style="font-size:1.2rem;font-weight:700;margin:40px 0 16px;">Contoh Temuan Utama per Jenis Proyek (§3 Hasil Kegiatan)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Jenis Proyek</th><th>Contoh Temuan yang Wajib Masuk ES</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-blue">Pemetaan Batas Desa</span></td><td>3 segmen batas masih sengketa, belum ditetapkan. Perlu mediasi Pemda.</td></tr>
+        <tr><td><span class="tag tag-green">Lahan Baku Sawah</span></td><td>Luas sawah 12.340 Ha, berkurang 8,3% dibanding BPS 2019 akibat alih fungsi lahan.</td></tr>
+        <tr><td><span class="tag tag-yellow">KLHS RTRW</span></td><td>Daya dukung air 3 kecamatan sudah terlampaui. Revisi zonasi diperlukan sebelum RTRW disahkan.</td></tr>
+        <tr><td><span class="tag tag-red">Kawasan Bencana</span></td><td>4 desa (1.247 KK) di zona bahaya longsor tinggi, belum masuk peta evakuasi BPBD.</td></tr>
+        <tr><td><span class="tag tag-blue">WebGIS</span></td><td>Sistem aktif, namun 60% staf Dinas perlu pelatihan sebelum dapat dioperasikan mandiri.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Konsistensi -->
+  <div class="highlight green" style="margin-top:32px;">
+    <strong>✅ Checklist Konsistensi ES</strong>
+    <ul class="styled" style="margin-top:8px;">
+      <li>Luas area di ES = luas area di BAB III dan lampiran peta</li>
+      <li>Jumlah lembar peta di ES = jumlah di BAB IV = jumlah fisik di lampiran</li>
+      <li>Nama lokasi administrasi konsisten (Kab. vs Kabupaten, singkatan vs lengkap)</li>
+      <li>Periode pelaksanaan di ES = di halaman sampul = di kontrak</li>
+      <li>Daftar output di ES = daftar output di KAK = daftar di BAST</li>
+    </ul>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════ -->
+<!-- TOPIK 4: PROCUREMENT -->
+<!-- ══════════════════════════════════════ -->
+<section id="procurement">
+<div class="container">
+  <div class="section-eyebrow">Topik 4</div>
+  <div class="section-title">Manajemen Pengadaan Proyek Geospasial</div>
+  <p class="section-sub">"In procurement, clear specifications are your best insurance against project failure."</p>
+
+  <!-- Alur Pengadaan Ilustrasi -->
+  <div class="illustration-wrap">
+    <div class="illus-label"><span>🔄</span> Diagram Alur Pengadaan (Perpres 16/2018 & 12/2021)</div>
+    <svg viewBox="0 0 900 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#181c27">
+      <!-- Start -->
+      <rect x="360" y="14" width="180" height="36" rx="18" fill="#4f8ef7"/>
+      <text x="450" y="37" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="white">🚀 Mulai Proyek</text>
+      <line x1="450" y1="50" x2="450" y2="72" stroke="#2a3050" stroke-width="1.5"/>
+      <!-- Cek Pelaksana -->
+      <polygon points="450,72 530,100 450,128 370,100" fill="#1e2333" stroke="#f7c344" stroke-width="1.5"/>
+      <text x="450" y="97" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" font-weight="700" fill="#f7c344">Cek Pelaksana</text>
+      <text x="450" y="113" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8892aa">(pakai pihak ke-3?)</text>
+      <!-- Left: Swakelola -->
+      <line x1="370" y1="100" x2="180" y2="100" stroke="#38d9a9" stroke-width="1.5"/>
+      <rect x="60" y="82" width="120" height="36" rx="8" fill="#1e3333" stroke="#38d9a9" stroke-width="1.5"/>
+      <text x="120" y="100" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" font-weight="700" fill="#38d9a9">Swakelola</text>
+      <text x="120" y="114" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8892aa">(dikerjakan sendiri)</text>
+      <!-- Right: Penyedia -->
+      <line x1="530" y1="100" x2="720" y2="100" stroke="#4f8ef7" stroke-width="1.5"/>
+      <rect x="720" y="82" width="120" height="36" rx="8" fill="#1a3a6b" stroke="#4f8ef7" stroke-width="1.5"/>
+      <text x="780" y="100" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" font-weight="700" fill="#4f8ef7">Penyedia</text>
+      <text x="780" y="114" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8892aa">PT, CV, BUMN...</text>
+      <!-- Dari penyedia ke cek katalog -->
+      <line x1="780" y1="118" x2="780" y2="148" stroke="#2a3050" stroke-width="1.5"/>
+      <polygon points="780,148 860,172 780,196 700,172" fill="#1e2333" stroke="#f7c344" stroke-width="1.5"/>
+      <text x="780" y="169" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" font-weight="700" fill="#f7c344">Ada di E-Katalog?</text>
+      <!-- E-Purchasing -->
+      <line x1="700" y1="172" x2="560" y2="172" stroke="#38d9a9" stroke-width="1.5"/>
+      <rect x="440" y="156" width="120" height="32" rx="8" fill="#1e3333" stroke="#38d9a9" stroke-width="1.5"/>
+      <text x="500" y="174" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" font-weight="700" fill="#38d9a9">E-Purchasing</text>
+      <!-- Tidak ada di katalog -->
+      <line x1="780" y1="196" x2="780" y2="226" stroke="#2a3050" stroke-width="1.5"/>
+      <!-- Selection Methods Box -->
+      <rect x="580" y="220" width="380" height="100" rx="10" fill="#1e2333" stroke="#2a3050" stroke-width="1.5"/>
+      <text x="770" y="244" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#e8eaf0">Pemilihan Penyedia</text>
+      <text x="650" y="266" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#f76f72">Jasa Konsultansi</text>
+      <text x="880" y="266" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#4f8ef7">Barang/Konstruksi</text>
+      <text x="650" y="283" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8892aa">≤100jt: Pengadaan Langsung (RFQ)</text>
+      <text x="650" y="298" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8892aa">&gt;100jt: Seleksi (RFP)</text>
+      <text x="880" y="283" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8892aa">≤200jt: Pengadaan Langsung (RFQ)</text>
+      <text x="880" y="298" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8892aa">Kompleks: Tender (IFB)</text>
+      <line x1="760" y1="250" x2="760" y2="315" stroke="#2a3050" stroke-width="1" stroke-dasharray="4"/>
+    </svg>
+  </div>
+
+  <!-- RFP vs RFQ vs IFB -->
+  <h3 style="font-size:1.2rem;font-weight:700;margin:40px 0 16px;">Dokumen Pengadaan: RFP vs RFQ vs IFB</h3>
+  <div class="card-grid">
+    <div class="card" style="border-top: 3px solid var(--accent4);">
+      <div class="card-icon" style="background:rgba(247,111,114,0.15);">📋</div>
+      <h3>RFP — Request for Proposal</h3>
+      <p>Untuk jasa kompleks, solusi tidak baku. Evaluasi proposal menyeluruh. Padanan: <strong>Seleksi Umum/Prakualifikasi</strong>.</p>
+      <div style="margin-top:12px;"><span class="tag tag-red">Contoh: Analisis pengurangan risiko bencana</span></div>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--accent3);">
+      <div class="card-icon" style="background:rgba(247,195,68,0.15);">💬</div>
+      <h3>RFQ — Request for Quotation</h3>
+      <p>Untuk barang/jasa standar, perbandingan harga. Padanan: <strong>Pengadaan Langsung</strong>.</p>
+      <div style="margin-top:12px;"><span class="tag tag-yellow">Contoh: Beli GPS Geodetik atau citra satelit</span></div>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--accent);">
+      <div class="card-icon" style="background:rgba(79,142,247,0.15);">📨</div>
+      <h3>IFB — Invitation for Bid</h3>
+      <p>Untuk pekerjaan terdefinisi penuh, harga terendah menang. Padanan: <strong>Lelang Umum</strong>.</p>
+      <div style="margin-top:12px;"><span class="tag tag-blue">Contoh: Cetak peta topografi standar</span></div>
+    </div>
+  </div>
+
+  <!-- SOW vs KAK -->
+  <h3 style="font-size:1.2rem;font-weight:700;margin:40px 0 16px;">SOW vs KAK — Apa Bedanya?</h3>
+  <div class="illustration-wrap">
+    <div class="illus-label"><span>⚖️</span> Perbandingan Statement of Work (SOW) vs Kerangka Acuan Kerja (KAK)</div>
+    <svg viewBox="0 0 860 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#181c27">
+      <!-- SOW -->
+      <rect x="40" y="30" width="360" height="150" rx="12" fill="#1e2333" stroke="#38d9a9" stroke-width="2"/>
+      <text x="220" y="58" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="14" font-weight="800" fill="#38d9a9">📦 SOW — Statement of Work</text>
+      <text x="220" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8892aa">Orientasi: Produk / Hasil Akhir</text>
+      <text x="220" y="96" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#e8eaf0">❓ Apa spesifikasi data yang diterima?</text>
+      <text x="220" y="116" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">• Resolusi 0.5m, format .gdb</text>
+      <text x="220" y="133" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">• RMSE ≤ 0.3m, tutupan awan &lt;5%</text>
+      <text x="220" y="150" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">• Sistem referensi: SRGI 2013</text>
+      <text x="220" y="168" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#38d9a9">→ Digunakan saat Quality Control data</text>
+      <!-- VS -->
+      <text x="430" y="115" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="18" font-weight="800" fill="#2a3050">VS</text>
+      <!-- KAK -->
+      <rect x="460" y="30" width="360" height="150" rx="12" fill="#1e2333" stroke="#4f8ef7" stroke-width="2"/>
+      <text x="640" y="58" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="14" font-weight="800" fill="#4f8ef7">📜 KAK — Kerangka Acuan Kerja</text>
+      <text x="640" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8892aa">Orientasi: Proses / Administrasi</text>
+      <text x="640" y="96" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#e8eaf0">❓ Bagaimana cara kerja & siapa timnya?</text>
+      <text x="640" y="116" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">• Personel bersertifikat SKA Ahli Madya</text>
+      <text x="640" y="133" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">• Metodologi wajib: GNSS RTK</text>
+      <text x="640" y="150" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8892aa">• Termin: 20% DP, 40% Lap. Antara, 40% BAST</text>
+      <text x="640" y="168" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#4f8ef7">→ Digunakan saat evaluasi dokumen tender</text>
+    </svg>
+  </div>
+
+  <!-- Jenis Kontrak -->
+  <h3 style="font-size:1.2rem;font-weight:700;margin:40px 0 16px;">Jenis Kontrak & Distribusi Risiko</h3>
+  <div class="illustration-wrap">
+    <div class="illus-label"><span>⚖️</span> Risiko Kontrak: dari Vendor ke Buyer</div>
+    <svg viewBox="0 0 860 140" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#181c27">
+      <!-- Risk axis -->
+      <text x="80" y="50" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#f76f72">RISIKO VENDOR TINGGI</text>
+      <line x1="80" y1="70" x2="780" y2="70" stroke="url(#riskGrad)" stroke-width="4"/>
+      <defs>
+        <linearGradient id="riskGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#f76f72"/>
+          <stop offset="50%" stop-color="#f7c344"/>
+          <stop offset="100%" stop-color="#38d9a9"/>
+        </linearGradient>
+      </defs>
+      <text x="700" y="50" text-anchor="end" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#38d9a9">RISIKO BUYER TINGGI</text>
+      <!-- FP -->
+      <rect x="80" y="82" width="200" height="48" rx="8" fill="#2a0a0a" stroke="#f76f72" stroke-width="1.5"/>
+      <text x="180" y="104" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="800" fill="#f76f72">Fixed-Price (FP)</text>
+      <text x="180" y="120" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8892aa">Beli citra arsip, beli lisensi software</text>
+      <!-- T&M -->
+      <rect x="330" y="82" width="200" height="48" rx="8" fill="#2a2a00" stroke="#f7c344" stroke-width="1.5"/>
+      <text x="430" y="104" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="800" fill="#f7c344">Time & Material (T&M)</text>
+      <text x="430" y="120" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8892aa">Sewa tenaga ahli GIS harian</text>
+      <!-- CR -->
+      <rect x="580" y="82" width="200" height="48" rx="8" fill="#0a2a1a" stroke="#38d9a9" stroke-width="1.5"/>
+      <text x="680" y="104" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="800" fill="#38d9a9">Cost-Reimbursable (CR)</text>
+      <text x="680" y="120" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8892aa">Survei hutan primer, medan tak terduga</text>
+    </svg>
+  </div>
+
+  <div class="highlight red" style="margin-top:24px;">
+    <strong>⚠️ Jebakan "Harga Terendah"</strong>
+    GPS tidak terkalibrasi → deviasi koordinat sistemik. Citra arsip berawan → gagal ekstraksi fitur. Surveyor tidak bersertifikat → Berita Acara tidak diakui BIG/ATR-BPN. <strong>Biaya murah di awal sering berujung re-work yang jauh lebih mahal.</strong>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════ -->
+<!-- TOPIK 5: RESOURCE MANAGEMENT -->
+<!-- ══════════════════════════════════════ -->
+<section id="resource">
+<div class="container">
+  <div class="section-eyebrow">Topik 5</div>
+  <div class="section-title">Manajemen Sumber Daya Proyek Geospasial</div>
+  <p class="section-sub">Mengidentifikasi, memperoleh, dan mengelola SDM + alat + data secara presisi dari perencanaan hingga implementasi.</p>
+
+  <!-- 3 Sumber Daya -->
+  <div class="card-grid">
+    <div class="card" style="border-top:3px solid var(--accent);">
+      <div class="card-icon" style="background:rgba(79,142,247,0.15);">👥</div>
+      <h3>Sumber Daya Manusia</h3>
+      <p>GIS Analyst, Spatial Programmer, Surveyor Lapangan, Pilot Drone — "koki" yang mengeksekusi metodologi.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--accent2);">
+      <div class="card-icon" style="background:rgba(56,217,169,0.15);">🛢️</div>
+      <h3>Aset Data</h3>
+      <p>Citra Satelit, DEM, Data Tabular/Statistik BPS — "bahan baku premium" yang menentukan kualitas output.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--accent3);">
+      <div class="card-icon" style="background:rgba(247,195,68,0.15);">🔧</div>
+      <h3>Infrastruktur & Fisik</h3>
+      <p>Workstation komputasi tinggi, Server Cloud, GPS Geodetik, Lisensi Software ArcGIS/QGIS — "peralatan dapur".</p>
+    </div>
+  </div>
+
+  <!-- RACI Matrix -->
+  <h3 style="font-size:1.2rem;font-weight:700;margin:40px 0 16px;">🎯 Matriks RACI — Contoh Proyek Pemetaan</h3>
+  <div class="highlight blue" style="margin-bottom:16px;">
+    <strong>Legenda RACI</strong>
+    <span class="raci-r">R</span> Responsible (mengerjakan) &nbsp;
+    <span class="raci-a">A</span> Accountable (bertanggung jawab — hanya 1 orang!) &nbsp;
+    <span class="raci-c">C</span> Consulted (dimintai pendapat) &nbsp;
+    <span class="raci-i">I</span> Informed (diberi tahu)
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Aktivitas</th><th>Project Manager</th><th>Analis SIG</th><th>Surveyor</th><th>Instansi/Klien</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Penentuan Titik GCP</td>
+          <td><span class="raci-a">A</span></td>
+          <td><span class="raci-c">C</span></td>
+          <td><span class="raci-r">R</span></td>
+          <td><span class="raci-i">I</span></td>
+        </tr>
+        <tr>
+          <td>Akuisisi Citra Satelit</td>
+          <td><span class="raci-r">R</span> <span class="raci-a">A</span></td>
+          <td><span class="raci-c">C</span></td>
+          <td><span class="raci-i">I</span></td>
+          <td><span class="raci-i">I</span></td>
+        </tr>
+        <tr>
+          <td>Analisis Kesesuaian Lahan</td>
+          <td><span class="raci-i">I</span></td>
+          <td><span class="raci-r">R</span> <span class="raci-a">A</span></td>
+          <td><span class="raci-i">I</span></td>
+          <td><span class="raci-c">C</span></td>
+        </tr>
+        <tr>
+          <td>Persetujuan Peta Final</td>
+          <td><span class="raci-r">R</span></td>
+          <td><span class="raci-c">C</span></td>
+          <td><span class="raci-i">I</span></td>
+          <td><span class="raci-a">A</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Skill Matrix -->
+  <h3 style="font-size:1.2rem;font-weight:700;margin:40px 0 16px;">📊 Skill Matrix Tim Geospasial</h3>
+  <div class="illustration-wrap">
+    <div class="illus-label"><span>🎓</span> Contoh Skill Matrix — Skala 1 (Dasar) s/d 4 (Expert)</div>
+    <svg viewBox="0 0 860 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#181c27">
+      <!-- headers -->
+      <text x="120" y="30" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" font-weight="700" fill="#4f8ef7">Survey Terestris</text>
+      <text x="290" y="30" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" font-weight="700" fill="#4f8ef7">Digitasi & Topologi</text>
+      <text x="490" y="30" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" font-weight="700" fill="#4f8ef7">Analisis Spasial</text>
+      <text x="680" y="30" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" font-weight="700" fill="#4f8ef7">WebGIS/Programming</text>
+      <!-- rows -->
+      <!-- Keenaar -->
+      <text x="60" y="70" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="600" fill="#e8eaf0">Keenaar</text>
+      <rect x="80" y="56" width="80" height="24" rx="4" fill="#1a3a6b"/>
+      <rect x="80" y="56" width="80" height="24" rx="4" fill="url(#kn1)"/>
+      <defs><linearGradient id="kn1" x1="0" y1="0" x2="1" y2="0"><stop offset="100%" stop-color="#4f8ef7" stop-opacity="0.8"/></linearGradient></defs>
+      <text x="120" y="73" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="white">4</text>
+      <rect x="250" y="56" width="40" height="24" rx="4" fill="rgba(79,142,247,0.3)"/>
+      <text x="270" y="73" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#4f8ef7">2</text>
+      <rect x="450" y="56" width="40" height="24" rx="4" fill="rgba(79,142,247,0.3)"/>
+      <text x="470" y="73" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#4f8ef7">2</text>
+      <rect x="640" y="56" width="20" height="24" rx="4" fill="rgba(79,142,247,0.15)"/>
+      <text x="660" y="73" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#4f8ef7">1</text>
+      <!-- Syafeera -->
+      <text x="60" y="110" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="600" fill="#e8eaf0">Syafeera</text>
+      <rect x="80" y="96" width="20" height="24" rx="4" fill="rgba(56,217,169,0.15)"/>
+      <text x="100" y="113" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#38d9a9">1</text>
+      <rect x="250" y="96" width="80" height="24" rx="4" fill="rgba(56,217,169,0.7)"/>
+      <text x="270" y="113" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="white">4</text>
+      <rect x="450" y="96" width="60" height="24" rx="4" fill="rgba(56,217,169,0.5)"/>
+      <text x="470" y="113" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="white">3</text>
+      <rect x="640" y="96" width="40" height="24" rx="4" fill="rgba(56,217,169,0.3)"/>
+      <text x="660" y="113" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#38d9a9">2</text>
+      <!-- Xabirru -->
+      <text x="60" y="150" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="600" fill="#e8eaf0">Xabirru</text>
+      <rect x="80" y="136" width="40" height="24" rx="4" fill="rgba(247,195,68,0.3)"/>
+      <text x="100" y="153" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#f7c344">2</text>
+      <rect x="250" y="136" width="60" height="24" rx="4" fill="rgba(247,195,68,0.5)"/>
+      <text x="270" y="153" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="white">3</text>
+      <rect x="450" y="136" width="80" height="24" rx="4" fill="rgba(247,195,68,0.7)"/>
+      <text x="470" y="153" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="white">4</text>
+      <rect x="640" y="136" width="60" height="24" rx="4" fill="rgba(247,195,68,0.5)"/>
+      <text x="660" y="153" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="white">3</text>
+      <!-- Rafassya -->
+      <text x="60" y="190" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="600" fill="#e8eaf0">Rafassya</text>
+      <rect x="80" y="176" width="20" height="24" rx="4" fill="rgba(247,111,114,0.15)"/>
+      <text x="100" y="193" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#f76f72">1</text>
+      <rect x="250" y="176" width="40" height="24" rx="4" fill="rgba(247,111,114,0.3)"/>
+      <text x="270" y="193" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#f76f72">2</text>
+      <rect x="450" y="176" width="40" height="24" rx="4" fill="rgba(247,111,114,0.3)"/>
+      <text x="470" y="193" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#f76f72">2</text>
+      <rect x="640" y="176" width="80" height="24" rx="4" fill="rgba(247,111,114,0.7)"/>
+      <text x="660" y="193" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="white">4</text>
+    </svg>
+  </div>
+
+  <!-- 6 Langkah PMBOK -->
+  <h3 style="font-size:1.2rem;font-weight:700;margin:40px 0 16px;">6 Langkah Resource Management (PMBOK)</h3>
+  <div class="two-col">
+    <div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num" style="background:linear-gradient(135deg,var(--accent),#2563eb);">1</div>
+          <div class="step-content">
+            <h4>Plan Resource Management</h4>
+            <p>Susun panduan tata kelola & Matriks RACI. Tentukan siapa R, A, C, I untuk setiap tugas.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num" style="background:linear-gradient(135deg,#2563eb,var(--accent2));">2</div>
+          <div class="step-content">
+            <h4>Estimate Activity Resources</h4>
+            <p>Bottom-up estimating: luas area → jumlah surveyor & hari kerja. Resolusi data → kapasitas storage.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num" style="background:linear-gradient(135deg,var(--accent2),#059669);">3</div>
+          <div class="step-content">
+            <h4>Acquire Resources</h4>
+            <p>Pengadaan citra, rekrutmen tenaga ahli bersertifikat. Perhatikan SLA layanan cloud/API.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num" style="background:linear-gradient(135deg,var(--accent3),#d97706);">4</div>
+          <div class="step-content">
+            <h4>Develop Team</h4>
+            <p>Hilangkan silo mentality. Harmonisasi SRS, penamaan atribut, standar topologi antar-divisi.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num" style="background:linear-gradient(135deg,#d97706,var(--accent4));">5</div>
+          <div class="step-content">
+            <h4>Manage Team</h4>
+            <p>Manajemen konflik Tim Lapangan vs Tim Studio. Gunakan Kanban (Trello/Jira) untuk lacak progres.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num" style="background:linear-gradient(135deg,var(--accent4),#9333ea);">6</div>
+          <div class="step-content">
+            <h4>Control Resources</h4>
+            <p>Protokol Backup 3-2-1: 3 salinan, 2 media berbeda, 1 offsite/cloud. Version Control untuk kode spasial.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="highlight yellow" style="margin-top:32px;">
+    <strong>⚖️ Resource Leveling vs Resource Smoothing</strong>
+    <strong>Leveling:</strong> Geser jadwal ketika sumber daya langka (hanya 1 lisensi ArcGIS, 2 analis butuh bersamaan → deadline disesuaikan). <strong>Smoothing:</strong> Sesuaikan aktivitas dalam float/slack agar beban kerja stabil dan cegah burnout.
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════ -->
+<!-- SOAL HOTS -->
+<!-- ══════════════════════════════════════ -->
+<section id="quiz-section">
+<div class="container">
+  <div class="section-eyebrow">Bank Soal</div>
+  <div class="section-title">Soal HOTS — Analisis, Evaluasi & Kreasi</div>
+  <p class="section-sub">20 soal berbasis Higher Order Thinking Skills (C4–C6 Bloom). Jawab dan baca penjelasan untuk memahami konsep secara mendalam.</p>
+
+  <div class="quiz-header">
+    <div>
+      <span class="tag tag-yellow">C4 Analisis</span>
+      <span class="tag tag-red">C5 Evaluasi</span>
+      <span class="tag tag-green">C6 Kreasi</span>
+    </div>
+    <div class="quiz-counter">Soal <span id="qNum">1</span> / <span id="qTotal">20</span> &nbsp;|&nbsp; Skor: <span id="qScore">0</span></div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="qProgress" style="width:5%"></div></div>
+
+  <!-- ── Q1 ── -->
+  <div class="question-card active" data-q="1">
+    <div class="q-badge analyze">C4 — Analisis</div>
+    <div class="q-text">1. Sebuah CV geospasial mendapat 90% pendapatan dari satu instansi pemerintah kabupaten. Mengapa kondisi ini secara strategis berbahaya, dan faktor apa yang paling tepat menggambarkan risiko tersebut?</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">A</span>CV belum memiliki NPWP sehingga tidak bisa ikut tender lain</div>
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">B</span>Ketergantungan tunggal menciptakan keterpaparan risiko sistemik: jika anggaran instansi dipotong, seluruh cashflow CV ikut terganggu</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">C</span>SBU CV tidak cukup untuk mengikuti tender di daerah lain</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>Rekening perusahaan belum dipisah dari rekening pribadi</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> Ini adalah risiko <em>single-client dependency</em>. Jika anggaran instansi dipotong akibat perubahan kebijakan atau pejabat baru, CV kehilangan hampir semua sumber pendapatan sekaligus. Solusinya adalah diversifikasi klien ke beberapa instansi atau masuk ke pasar swasta.
+    </div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="question-card" data-q="2">
+    <div class="q-badge evaluate">C5 — Evaluasi</div>
+    <div class="q-text">2. Dalam tender pemetaan RDTR, Panitia Pengadaan menyatakan pemenang adalah vendor dengan penawaran harga terendah. Sebagai PM dari CV yang kalah, argumen teknis apa yang paling kuat untuk mengajukan keberatan?</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">A</span>Harga CV kami sudah termasuk PPN sehingga tidak sebanding</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">B</span>Metode evaluasi IFB tidak tepat untuk tender jasa konsultansi</div>
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">C</span>Penawaran sangat murah berisiko menggunakan instrumen tidak terkalibrasi atau surveyor tidak bersertifikat, yang akan menghasilkan data tidak valid dan biaya re-work lebih tinggi</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>CV kami memiliki portofolio lebih banyak dan layak menang secara reputasi</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> Argumen teknis paling kuat adalah dampak langsung terhadap kualitas output: GPS tidak terkalibrasi → deviasi koordinat sistemik; surveyor tidak bersertifikat → Berita Acara ditolak BIG/ATR-BPN. Ini menunjukkan bahwa biaya murah di awal menciptakan risiko kualitas dan biaya perbaikan yang lebih mahal di akhir.
+    </div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="question-card" data-q="3">
+    <div class="q-badge analyze">C4 — Analisis</div>
+    <div class="q-text">3. Tim proyek Anda menemukan bahwa Kepala Desa (Kades) suatu daerah memiliki Power rendah secara legal, namun kata-katanya diikuti seluruh warga kampung. Dengan menggunakan Stakeholder Salience Model, bagaimana Anda mengklasifikasikan Kades tersebut?</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">A</span>Dominant — karena punya legitimacy tinggi dari jabatannya</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">B</span>Monitor saja — karena power dan legitimacy-nya rendah secara formal</div>
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">C</span>Dependent (atau Hidden Stakeholder kritis) — punya Urgency + Legitimacy informal tinggi walaupun Power formal rendah; harus dilindungi dan dilibatkan</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>Dangerous — karena bisa mempengaruhi proyek tanpa memiliki legitimacy hukum</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> Kades punya <em>Legitimacy informal</em> (diakui komunitas) dan <em>Urgency</em> (menyangkut tanah warganya). Walaupun Power formal rendah, tokoh yang "kata-katanya dituruti seluruh kampung" adalah hidden stakeholder paling kritis. Mengabaikannya bisa memicu penolakan lapangan masif dan sabotase patok GCP.
+    </div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="question-card" data-q="4">
+    <div class="q-badge evaluate">C5 — Evaluasi</div>
+    <div class="q-text">4. Seorang PM mendapat tekanan dari sponsor untuk menghapus area hutan lindung dari peta tutupan lahan agar tidak menghambat izin investasi. Strategi resolusi konflik mana yang paling tepat dan mengapa?</div>
+    <div class="q-context">📎 Konteks: Hasil klasifikasi digital dan ground truth lapangan menunjukkan area tersebut secara teknis adalah hutan lindung sesuai SK Menteri.</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">A</span>Compromising — setujui penghapusan sebagian area yang paling sedikit tutupan hutannya</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">B</span>Avoiding — tunda keputusan sampai sponsor tidak mempermasalahkan lagi</div>
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">C</span>Forcing — tolak permintaan dengan berpegang pada objektivitas data teknis dan standar BIG, karena mematuhi standar akurasi tanpa kompromi adalah etika profesional</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>Smoothing — tonjolkan manfaat investasi bagi daerah agar sponsor luluh</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> <em>Forcing</em> adalah satu-satunya strategi yang etis di sini. Memanipulasi peta tutupan lahan bukan hanya pelanggaran teknis, tapi bisa berujung pada tuntutan hukum dan kehilangan akreditasi. Seorang profesional GIS wajib menjaga integritas data bahkan di bawah tekanan klien.
+    </div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="question-card" data-q="5">
+    <div class="q-badge create">C6 — Kreasi</div>
+    <div class="q-text">5. Anda diminta merancang Executive Summary proyek Pemetaan Kawasan Bencana senilai Rp 450 juta. Temuan lapangan menunjukkan 5 desa di zona bahaya tinggi belum masuk peta evakuasi BPBD. Rekomendasi seperti apa yang harus ditulis dalam ES?</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">A</span>"Disarankan agar hasil pemetaan ini dapat dimanfaatkan secara maksimal oleh instansi terkait."</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">B</span>"Peta bahaya sudah tersedia dan bisa diunduh dari server geodatabase."</div>
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">C</span>"Peta bahaya segera diintegrasikan ke RPB Kabupaten; sosialisasi kepada 5 desa zona bahaya sebelum musim hujan; shapefile diserahkan ke BPBD untuk sistem peringatan dini; pemutakhiran peta setiap 3 tahun."</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>"Tim pemetaan telah berhasil menyelesaikan seluruh pekerjaan sesuai KAK."</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> Rekomendasi ES yang baik harus: (1) spesifik dan actionable, (2) menjawab "apa yang harus dilakukan klien setelah menerima laporan", (3) mencantumkan batas waktu/prioritas, dan (4) menghubungkan temuan ke tindakan konkret. Opsi A & B terlalu generik/tidak berguna untuk pengambil keputusan.
+    </div>
+  </div>
+
+  <!-- Q6 -->
+  <div class="question-card" data-q="6">
+    <div class="q-badge analyze">C4 — Analisis</div>
+    <div class="q-text">6. Startup GeoTech Anda membangun platform monitoring lahan sawit berbasis citra satelit Maxar. Kemudian Maxar menaikkan harga lisensi data 3x lipat. Risiko bisnis apa yang paling tepat menggambarkan situasi ini?</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">A</span>Risiko product-market fit — platform belum terbukti dibutuhkan pasar</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">B</span>Risiko SDM — tim tidak mampu mengoperasikan data Maxar</div>
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">C</span>Risiko ketergantungan data pihak ketiga — perubahan harga lisensi vendor tunggal menghancurkan margin keuntungan</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>Risiko ekosistem investor — investor Indonesia belum paham GeoTech</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> Ini adalah risiko klasik <em>vendor lock-in</em> pada data geospasial komersial. Startup GeoTech yang bergantung pada satu penyedia citra sangat rentan terhadap kebijakan harga sepihak. Mitigasinya: diversifikasi ke citra open source (Sentinel-2, Landsat) untuk segmen produk tertentu atau negosiasi kontrak jangka panjang.
+    </div>
+  </div>
+
+  <!-- Q7 -->
+  <div class="question-card" data-q="7">
+    <div class="q-badge evaluate">C5 — Evaluasi</div>
+    <div class="q-text">7. Sebuah instansi menerima Executive Summary proyek Pemetaan Lahan Baku Sawah dengan masalah berikut: luas sawah di ES (14.230 Ha) berbeda dengan BAB IV (14.187 Ha), dan disebutkan menggunakan Landsat 8 padahal BAB III menyebut Sentinel-2. Apa implikasi paling serius dari inkonsistensi tersebut?</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">A</span>ES menjadi kurang menarik dibaca karena formatnya tidak konsisten</div>
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">B</span>Inkonsistensi data angka & instrumen merusak kredibilitas laporan secara keseluruhan; klien tidak bisa mengambil keputusan berbasis data yang shahih</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">C</span>Perbedaan 43 Ha tidak signifikan dalam skala kabupaten</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>Hanya perlu ralat pada halaman ES, tidak perlu revisi laporan utama</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> Inkonsistensi angka (43 Ha selisih) bisa mempengaruhi kebijakan redistribusi lahan dan subsidi pertanian. Inkonsistensi instrumen (Landsat 8 vs Sentinel-2) menimbulkan pertanyaan: data yang mana yang benar? Kreditabilitas seluruh laporan runtuh. Di lingkup hukum, inkonsistensi ini bisa dijadikan dasar penolakan BAST.
+    </div>
+  </div>
+
+  <!-- Q8 -->
+  <div class="question-card" data-q="8">
+    <div class="q-badge analyze">C4 — Analisis</div>
+    <div class="q-text">8. Tim Anda perlu memilih antara menyewa drone LiDAR (buy) atau membeli sendiri (make) untuk proyek pemetaan hutan 6 bulan. Analisis Make-or-Buy yang paling tepat adalah...</div>
+    <div class="q-context">📎 Data: Harga sewa = Rp 50 jt/bulan. Harga beli = Rp 800 jt (umur pakai 3 tahun, setelah itu teknologi sudah usang).</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">A</span>Buy, karena beli drone memberi prestise dan aset jangka panjang perusahaan</div>
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">B</span>Sewa (Buy) lebih efisien: total sewa 6 bulan = Rp 300 jt vs beli Rp 800 jt; proyek sekali jalan tidak efisien untuk beli aset mahal yang cepat terdepresiasi</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">C</span>Make, karena memiliki drone sendiri memindahkan risiko kerusakan ke perusahaan</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>Harus beli karena menyewa drone tidak memungkinkan menurut regulasi Perpres</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> Analisis Make-or-Buy menimbang total cost, risiko, dan strategi jangka panjang. Untuk beban kerja musiman/sekali jalan, sewa selalu lebih efisien. Tambahan: dengan sewa, risiko kerusakan alat ditanggung vendor; dengan beli, perusahaan harus mengelola perawatan, kalibrasi, dan spare part — yang di Indonesia seringkali sulit ditemukan untuk drone LiDAR.
+    </div>
+  </div>
+
+  <!-- Q9 -->
+  <div class="question-card" data-q="9">
+    <div class="q-badge create">C6 — Kreasi</div>
+    <div class="q-text">9. Sebuah desa akan disurvei batas wilayahnya, namun informasi awal menunjukkan ada sengketa lahan dengan desa tetangga yang melibatkan tokoh adat berpengaruh. Rancang strategi stakeholder engagement yang komprehensif sebelum turun lapangan.</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">A</span>Langsung turunkan alat dan survei, karena ada mandat kontrak yang mengikat</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">B</span>Koordinasi hanya dengan Kepala Desa karena beliau adalah representasi resmi warga</div>
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">C</span>Identifikasi semua stakeholder via snowball (termasuk tokoh adat), susun stakeholder register, gelar sosialisasi pra-survei dengan Berita Acara, gunakan edukasi visual citra satelit, dan rencanakan mediasi jika ada titik sengketa</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>Laporkan ke Pemda dan minta mereka menyelesaikan sengketa terlebih dahulu</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> Strategi komprehensif mencakup: (1) Snowball identification untuk temukan hidden stakeholder termasuk tokoh adat, (2) Stakeholder Register dengan kolom potensi konflik, (3) Sosialisasi pra-survei + Berita Acara yang ditandatangani, (4) Edukasi visual (foto drone/citra satelit) agar warga memahami batas secara intuitif, (5) Rencana mediasi berbasis Smoothing/Collaborating untuk titik sengketa.
+    </div>
+  </div>
+
+  <!-- Q10 -->
+  <div class="question-card" data-q="10">
+    <div class="q-badge evaluate">C5 — Evaluasi</div>
+    <div class="q-text">10. Seorang freelancer GIS Indonesia ingin memperluas klien ke pasar internasional. Platform mana yang paling strategis dan alasan teknis apa yang mendukung pilihan tersebut?</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">A</span>Projects.co.id — karena pasar Indonesia lebih terjangkau dan prosesnya lebih mudah</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">B</span>Instagram — karena portofolio visual peta menarik audiens luas</div>
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">C</span>Upwork — akses klien global berbayar USD ($25–60/jam), dan LinkedIn untuk networking serta inbound klien korporat yang membutuhkan spesialis GIS senior</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>Behance — karena platform desain profesional yang dikenal para klien premium</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> Untuk monetisasi internasional, kombinasi Upwork (akses proyek berbayar USD) + LinkedIn (bangun jaringan profesional, inbound klien korporat) adalah yang paling efektif. Instagram & Behance lebih cocok untuk personal branding kartografi/desain peta, bukan mencari klien GIS analitis. Projects.co.id hanya menjangkau pasar domestik.
+    </div>
+  </div>
+
+  <!-- Q11 -->
+  <div class="question-card" data-q="11">
+    <div class="q-badge analyze">C4 — Analisis</div>
+    <div class="q-text">11. Proyek survei topografi memerlukan 1 unit GPS Geodetik yang sama-sama dibutuhkan oleh Tim A (survei batas desa) dan Tim B (pengukuran benchmark) pada minggu yang sama. Konsep Resource Management mana yang paling tepat diterapkan?</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">A</span>Resource Smoothing — selesaikan pekerjaan yang lebih mudah lebih dulu</div>
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">B</span>Resource Leveling — geser jadwal Tim B ke minggu berikutnya dan sesuaikan deadline, karena sumber daya langka mengharuskan penyesuaian jadwal meskipun melewati batas semula</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">C</span>Make-or-Buy — beli GPS baru agar kedua tim bisa jalan bersamaan</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>RACI Matrix — ubah penugasan sehingga satu orang bisa mengerjakan keduanya</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> <em>Resource Leveling</em> digunakan ketika sumber daya langka sehingga jadwal harus digeser — bahkan jika melewati deadline awal. Berbeda dengan <em>Smoothing</em> yang hanya menggeser dalam float/slack yang ada. Dalam kasus GPS tunggal, leveling adalah solusi yang tepat; solusi alternatif: sewa GPS tambahan (procurement), atau negosiasi prioritas berdasarkan kritikalitas jalur kritis.
+    </div>
+  </div>
+
+  <!-- Q12 -->
+  <div class="question-card" data-q="12">
+    <div class="q-badge evaluate">C5 — Evaluasi</div>
+    <div class="q-text">12. CV Anda memenangkan tender pemetaan dan kontrak yang disepakati adalah Fixed-Price. Namun di tengah pekerjaan, medan lapangan jauh lebih sulit dari perkiraan (hutan lebat, tidak ada sinyal) sehingga biaya operasional membengkak 40%. Evaluasi situasi ini secara manajerial.</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">A</span>Ini adalah konsekuensi dari kontrak Fixed-Price: risiko bengkaknya biaya ditanggung vendor. Seharusnya sejak awal digunakan Cost-Reimbursable untuk medan tidak terduga</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">B</span>Minta addendum kontrak untuk menaikkan nilai karena kondisi force majeure</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">C</span>Kontrak Fixed-Price berarti klien yang harus menanggung biaya tambahan</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>Hentikan pekerjaan dan minta klien menyelesaikan di luar kontrak</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> Fixed-Price menempatkan seluruh risiko biaya di pihak vendor. Ini adalah keputusan strategis yang harus diperhitungkan saat menyusun RAB tender. Untuk medan tidak terduga seperti hutan primer, Cost-Reimbursable jauh lebih tepat karena biaya lapangan fluktuatif. Pelajaran: kedalaman analisis risiko di tahap perencanaan menentukan pilihan jenis kontrak yang tepat.
+    </div>
+  </div>
+
+  <!-- Q13 -->
+  <div class="question-card" data-q="13">
+    <div class="q-badge create">C6 — Kreasi</div>
+    <div class="q-text">13. Anda adalah PM startup GeoTech yang ingin meluncurkan platform monitoring tutupan lahan untuk perusahaan perkebunan. Rancang urutan 3 langkah MVP (Minimum Viable Product) yang paling logis sebelum monetisasi.</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">A</span>Bangun platform lengkap dulu → cari investor → pasarkan ke perusahaan besar</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">B</span>Daftar ke akselerator → validasi masalah → bangun MVP</div>
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">C</span>Validasi masalah (wawancara 10–15 manajer perkebunan) → bangun MVP sederhana (dashboard QGIS + Leaflet) → uji dengan 3–5 pilot user gratis untuk kumpulkan feedback</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>Langsung terapkan model SaaS dengan harga premium agar dapat pendanaan cepat</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> Urutan yang benar mengikuti prinsip lean startup: (1) Validasi masalah dulu — banyak startup GeoTech gagal bukan karena teknologinya buruk, tapi karena tidak ada yang mau membayar; (2) MVP sesederhana mungkin (dashboard QGIS + Leaflet sudah cukup); (3) Pilot user gratis menghasilkan feedback nyata dan seringkali menjadi pelanggan berbayar pertama.
+    </div>
+  </div>
+
+  <!-- Q14 -->
+  <div class="question-card" data-q="14">
+    <div class="q-badge analyze">C4 — Analisis</div>
+    <div class="q-text">14. Dalam Stakeholder Engagement Assessment Matrix, seorang Dirjen ditempatkan di posisi C=Supportive, D=Leading. Apa interpretasi dari kondisi ini dan apa yang harus dilakukan PM?</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">A</span>Dirjen sudah sangat mendukung proyek sehingga tidak perlu perhatian lebih</div>
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">B</span>Dirjen saat ini sudah Supportive dan PM berambisi menjadikannya Leading (aktif mempromosikan proyek) — ini adalah target engagement yang ambisius dan perlu strategi komunikasi intensif + pelibatan langsung dalam milestone penting</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">C</span>Dirjen awalnya Leading tapi sekarang turun ke Supportive — tanda ada masalah</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>Dirjen tidak relevan bagi proyek dan bisa diabaikan</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> Dalam SEAM, C = posisi saat ini (Current), D = posisi yang diinginkan (Desired). C=Supportive, D=Leading berarti Dirjen sudah mendukung namun PM ingin ia menjadi champion aktif proyek. Strategi: undang dalam presentasi milestone, libatkan dalam keputusan kunci, berikan credit atas keberhasilan proyek di laporan publik.
+    </div>
+  </div>
+
+  <!-- Q15 -->
+  <div class="question-card" data-q="15">
+    <div class="q-badge evaluate">C5 — Evaluasi</div>
+    <div class="q-text">15. Sebuah proyek pemetaan menerima laporan dari warga bahwa patok GCP tiba-tiba dicabut. Bersamaan, narasi negatif tentang proyek drone muncul di Facebook desa. Apa interpretasi PM yang paling tepat terhadap dua kejadian ini?</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">A</span>Ini adalah gejala perubahan sikap stakeholder negatif yang harus segera direspons dengan identifikasi aktor, mediasi langsung, dan penyesuaian strategi komunikasi</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">B</span>Kejadian acak yang tidak perlu dikaitkan dengan manajemen proyek</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">C</span>Laporkan ke polisi dan teruskan survei sesuai jadwal</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>Minta klien menangani sendiri karena ini masalah sosial bukan teknis</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> Materi kuliah secara eksplisit menyebut patok GCP dicabut dan narasi negatif di medsos lokal sebagai "gejala perubahan sikap stakeholder". Ini adalah sinyal Monitor Stakeholder Engagement yang harus segera ditindaklanjuti. PM harus: (1) identifikasi siapa yang memimpin penolakan, (2) ganti metode pendekatan (jika rapat tidak mempan), (3) pertimbangkan strategi Smoothing atau Collaborating.
+    </div>
+  </div>
+
+  <!-- Q16 -->
+  <div class="question-card" data-q="16">
+    <div class="q-badge create">C6 — Kreasi</div>
+    <div class="q-text">16. Anda diminta merancang Source Selection Criteria (SSC) untuk memilih vendor pemetaan fotogrametri UAV. Komposisi bobot yang paling tepat untuk jasa teknis kompleks ini adalah...</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">A</span>Harga 70%, Teknis 20%, Personel 10%</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">B</span>Teknis 30%, Harga 50%, Personel 20%</div>
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">C</span>Teknis 60–70% (metodologi, spesifikasi sensor, rekam jejak), Personel 10–20% (SKA & pengalaman), Harga 10–20% — menggunakan metode QCBS</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>Portofolio 80%, Harga 20% — karena reputasi lebih penting dari teknis</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> Untuk jasa konsultansi teknis kompleks (fotogrametri UAV, pemetaan LiDAR), standar PMBOK dan praktik LKPP mengutamakan kapabilitas teknis (60–70%) karena kualitas output sangat bergantung pada metodologi dan peralatan. Harga hanya 10–20% agar tidak jatuh ke jebakan "harga terendah". Metode QCBS (Quality and Cost Based Selection) adalah gold standard untuk pengadaan jasa geospasial.
+    </div>
+  </div>
+
+  <!-- Q17 -->
+  <div class="question-card" data-q="17">
+    <div class="q-badge analyze">C4 — Analisis</div>
+    <div class="q-text">17. Sebuah Executive Summary proyek senilai Rp 320 juta hanya terdiri dari 1,5 halaman dan rekomendasi hanya berisi satu kalimat generik. Apa masalah utama dari ES tersebut?</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">A</span>Terlalu panjang dan membebani pembaca eksekutif</div>
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">B</span>Panjang tidak proporsional dengan nilai & kompleksitas proyek; rekomendasi generik tidak actionable sehingga gagal memandu klien mengambil tindakan nyata pasca-penyerahan laporan</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">C</span>Format ES tidak sesuai standar Perka BIG</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>Seharusnya ES ditulis di awal proyek, bukan di akhir</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> ES yang baik harus proporsional dengan nilai dan kompleksitas proyek. Proyek Rp 320 juta dengan ribuan data titik dan analisis multispektral tidak bisa dirangkum dalam 1,5 halaman. Yang terpenting: rekomendasi harus spesifik dan actionable (bukan "disarankan agar dimanfaatkan") karena ES dibaca oleh pengambil keputusan yang butuh arahan konkret.
+    </div>
+  </div>
+
+  <!-- Q18 -->
+  <div class="question-card" data-q="18">
+    <div class="q-badge evaluate">C5 — Evaluasi</div>
+    <div class="q-text">18. Mahasiswa KPJ ingin membangun portofolio profesional sejak kuliah. Dari pilihan berikut, mana yang memberikan nilai tertinggi untuk menarik klien atau rekruter secara jangka panjang?</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">A</span>Mengumpulkan sertifikat pelatihan sebanyak-banyaknya dari berbagai platform online</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">B</span>Hanya fokus pada nilai akademik tertinggi di semua mata kuliah</div>
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">C</span>Kombinasi: kontribusi ke OSM/GitHub GIS (bukti kemampuan teknis nyata), peta KKN/magang yang dipoles & dipublikasikan di ArcGIS Online, dan tulisan tutorial GEE/QGIS di Medium — karena semuanya accessible online dan menunjukkan dampak nyata</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>Mengikuti sebanyak-banyaknya kompetisi pemetaan nasional</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> Rekruter dan klien tidak bisa melihat nilai IPK di dalam laptop — tapi mereka bisa mengunjungi profil ArcGIS Online, GitHub, dan Medium Anda kapan saja. Kombinasi portofolio online yang menunjukkan kemampuan teknis nyata + konteks dampak ("peta ini digunakan untuk X, menghasilkan Y") jauh lebih kuat dibanding sertifikat atau nilai semata.
+    </div>
+  </div>
+
+  <!-- Q19 -->
+  <div class="question-card" data-q="19">
+    <div class="q-badge create">C6 — Kreasi</div>
+    <div class="q-text">19. Anda adalah PM yang baru mengetahui bahwa pemilik sah lahan yang dilalui jalur survei tinggal di Jakarta dan tidak hadir sosialisasi. Tiba-tiba ia muncul setelah patok terpasang dan mengancam menggugat. Rancang strategi mitigasi yang seharusnya dilakukan sejak awal.</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">A</span>Dokumentasikan semua patok yang sudah terpasang sebagai bukti pekerjaan telah dilakukan</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">B</span>Minta Kepala Desa untuk meyakinkan pemilik lahan agar menerima keputusan</div>
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">C</span>Sejak tahap identifikasi: lakukan snowball ("siapa pemilik lahan yang tidak hadir?"), pantau data AJB/sertifikat BPN untuk temukan absentee owner, dan pastikan ada mekanisme informasi tertulis via surat resmi/kuasa hukum kepada pemilik yang tidak hadir</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>Ini risiko klien, bukan PM — cukup laporkan kejadian ini dalam laporan proyek</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> Ini adalah kasus klasik <em>absentee landowner</em> — salah satu tipe hidden stakeholder yang paling sering muncul dalam proyek pemetaan batas. Mitigasi yang benar: (1) identifikasi absentee owner dari data BPN sebelum sosialisasi, (2) kirim pemberitahuan tertulis ke alamat domisili resmi, (3) pastikan Berita Acara Sosialisasi mencantumkan siapa yang tidak hadir dan bagaimana cara mereka dihubungi. Ini bukan semata tanggungjawab klien — PM bertanggung jawab atas kelancaran proyek.
+    </div>
+  </div>
+
+  <!-- Q20 -->
+  <div class="question-card" data-q="20">
+    <div class="q-badge evaluate">C5 — Evaluasi</div>
+    <div class="q-text">20. Sebuah proyek WebGIS Dinas Pertanian selesai dibangun. ES menyatakan "sistem berhasil dibangun dan aktif, namun 60% staf memerlukan pelatihan". Evaluasi kelengkapan ES tersebut dan rekomendasikan perbaikannya.</div>
+    <div class="options">
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">A</span>ES sudah lengkap — menyebutkan sistem aktif sudah cukup sebagai bukti keberhasilan</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">B</span>Temuan pelatihan tidak perlu masuk ES karena bukan bagian dari ruang lingkup teknis</div>
+      <div class="option" onclick="answer(this,'correct')"><span class="option-label">C</span>ES kurang lengkap: temuan 60% staf butuh pelatihan harus diikuti rekomendasi konkret (jadwal pelatihan, modul, anggaran estimasi, penanggung jawab) agar klien bisa langsung bertindak pasca-BAST</div>
+      <div class="option" onclick="answer(this,'wrong')"><span class="option-label">D</span>ES terlalu teknis — seharusnya hanya memuat foto tampilan sistem WebGIS</div>
+    </div>
+    <div class="explanation">
+      <strong>✅ Pembahasan:</strong> Temuan sudah baik (spesifik: 60% staf perlu pelatihan). Namun ES yang baik tidak berhenti di temuan — harus ada rekomendasi tindak lanjut yang actionable. Contoh rekomendasi yang tepat: "Direkomendasikan pelatihan 2 batch × 15 peserta dalam 3 bulan pasca-BAST; siapkan modul penggunaan WebGIS dalam Bahasa Indonesia; tunjuk admin WebGIS dari internal Dinas sebagai first-line support." Ini yang membedakan analis GIS dari manajer proyek.
+    </div>
+  </div>
+
+  <!-- Quiz Navigation -->
+  <div class="quiz-nav">
+    <button class="btn btn-outline" id="prevBtn" onclick="prevQuestion()" disabled>← Sebelumnya</button>
+    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">Selanjutnya →</button>
+    <button class="btn btn-outline" onclick="resetQuiz()" style="margin-left:auto;">🔄 Reset</button>
+  </div>
+
+  <!-- Score Display -->
+  <div class="score-display" id="scoreDisplay">
+    <h3>🎉 Kuis Selesai!</h3>
+    <div class="score-big" id="scoreBig">0/20</div>
+    <p style="color:var(--muted);margin-top:8px;" id="scoreMsg"></p>
+    <button class="btn btn-primary" onclick="resetQuiz()" style="margin-top:20px;">Coba Lagi</button>
+  </div>
+
+</div>
+</section>
+
+<footer>
+  <p>📚 Materi Persiapan UAS <strong>Manajemen Survei dan Pemetaan</strong></p>
+  <p style="margin-top:6px;">Dosen: Totok Wahyu Wibowo &nbsp;|&nbsp; Lab. Kartografi, Prodi KPJ, Departemen Sains Informasi Geografi, Fakultas Geografi UGM</p>
+  <p style="margin-top:12px;font-size:11px;color:#4a5568;">Dokumen ini disusun dari bahan kuliah 2026 untuk keperluan belajar.</p>
+</footer>
+
+<script>
+// ── NAV ──
+function scrollTo(id) {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// Scroll spy
+const sections = ['bisnis','stakeholder','exsum','procurement','resource','quiz-section'];
+const navBtns = document.querySelectorAll('.nav-btn');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(id => {
+    const s = document.getElementById(id);
+    if (s && window.scrollY >= s.offsetTop - 120) current = id;
+  });
+  navBtns.forEach((b, i) => {
+    b.classList.toggle('active', i < sections.length && sections[i] === current);
+  });
+});
+
+// ── QUIZ ──
+let currentQ = 1;
+let score = 0;
+let answered = new Array(21).fill(false);
+const total = 20;
+
+function answer(el, result) {
+  const card = el.closest('.question-card');
+  const qNum = parseInt(card.dataset.q);
+  if (answered[qNum]) return;
+  answered[qNum] = true;
+
+  // Mark all options
+  card.querySelectorAll('.option').forEach(opt => {
+    opt.style.pointerEvents = 'none';
+  });
+  el.classList.add(result);
+  if (result === 'correct') {
+    score++;
+    document.getElementById('qScore').textContent = score;
+  } else {
+    // Show correct
+    card.querySelectorAll('.option').forEach(opt => {
+      if (opt.getAttribute('onclick').includes("'correct'")) {
+        opt.classList.add('correct');
+      }
+    });
+  }
+  // Show explanation
+  card.querySelector('.explanation').classList.add('show');
+}
+
+function nextQuestion() {
+  if (currentQ < total) {
+    showQuestion(currentQ + 1);
+  } else {
+    endQuiz();
+  }
+}
+
+function prevQuestion() {
+  if (currentQ > 1) showQuestion(currentQ - 1);
+}
+
+function showQuestion(n) {
+  document.querySelector(`.question-card[data-q="${currentQ}"]`).classList.remove('active');
+  currentQ = n;
+  document.querySelector(`.question-card[data-q="${currentQ}"]`).classList.add('active');
+  document.getElementById('qNum').textContent = currentQ;
+  document.getElementById('prevBtn').disabled = currentQ === 1;
+  document.getElementById('nextBtn').textContent = currentQ === total ? 'Selesai ✓' : 'Selanjutnya →';
+  document.getElementById('qProgress').style.width = ((currentQ / total) * 100) + '%';
+}
+
+function endQuiz() {
+  document.querySelector(`.question-card[data-q="${currentQ}"]`).classList.remove('active');
+  const sd = document.getElementById('scoreDisplay');
+  sd.style.display = 'block';
+  document.getElementById('scoreBig').textContent = score + '/' + total;
+  const pct = score / total;
+  let msg = pct >= 0.9 ? '🏆 Luar biasa! Siap UAS!' : pct >= 0.7 ? '✅ Bagus! Review materi yang salah.' : pct >= 0.5 ? '📖 Perlu belajar lebih giat lagi.' : '💪 Ulangi semua materi dari awal.';
+  document.getElementById('scoreMsg').textContent = msg;
+  document.getElementById('qProgress').style.width = '100%';
+  document.querySelector('.quiz-nav').style.display = 'none';
+}
+
+function resetQuiz() {
+  score = 0;
+  currentQ = 1;
+  answered.fill(false);
+  document.getElementById('qScore').textContent = 0;
+  document.getElementById('qNum').textContent = 1;
+  document.getElementById('qProgress').style.width = '5%';
+  document.getElementById('scoreDisplay').style.display = 'none';
+  document.querySelector('.quiz-nav').style.display = 'flex';
+  document.getElementById('prevBtn').disabled = true;
+  document.getElementById('nextBtn').textContent = 'Selanjutnya →';
+  document.querySelectorAll('.question-card').forEach(c => {
+    c.classList.remove('active');
+    c.querySelectorAll('.option').forEach(o => {
+      o.classList.remove('correct','wrong');
+      o.style.pointerEvents = '';
+    });
+    const ex = c.querySelector('.explanation');
+    if (ex) ex.classList.remove('show');
+  });
+  document.querySelector('.question-card[data-q="1"]').classList.add('active');
+}
+</script>
+</body>
+</html>
